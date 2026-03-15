@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Erbil Bus Transit</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo-area">
+            <span class="material-icons">directions_bus</span>
+            <span class="logo-text">Erbil Bus Transit</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-item">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+            <a href="live.html" class="sidebar-item">
+                <span class="material-icons">map</span> Live View
+            </a>
+            <a href="routes.html" class="sidebar-item">
+                <span class="material-icons">route</span> Routes & Stops
+            </a>
+            <a href="buses.html" class="sidebar-item">
+                <span class="material-icons">directions_bus</span> Buses
+            </a>
+            <a href="schedules.html" class="sidebar-item">
+                <span class="material-icons">schedule</span> Schedules
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="admin-profile-sm">
+                <div class="admin-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;" id="adminName">Admin User</div>
+                    <div style="font-size: 12px; opacity: 0.6;">Administrator</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="page-subtitle">داسبۆرد</div>
+            </div>
+            
+            <div class="topbar-center">
+                <div class="search-bar">
+                    <span class="material-icons">search</span>
+                    <input type="text" placeholder="Search routes, stops...">
+                </div>
+            </div>
+            
+                <div style="margin-right: 16px;">
+                    <label for="switch" class="switch">
+                        <input id="switch" type="checkbox" />
+                        <span class="slider"></span>
+                        <span class="decoration"></span>
+                    </label>
+                </div>
+                    <span class="material-icons">notifications</span>
+                </button>
+                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px;">A</div>
+            </div>
+        </header>
+
+        <!-- Actual Page Content -->
+        <main class="main-content">
+            <div id="statsGrid" class="stats-grid skeleton" style="min-height: 120px; border-radius: var(--radius-card);">
+                <!-- Stat cards rendered here by JS -->
+            </div>
+
+            <div class="card-container">
+                <div class="card-header">
+                    <div class="card-title">Recent Routes</div>
+                    <a href="routes.html" class="btn btn-ghost" style="color: var(--color-teal); font-size: 14px;">View All</a>
+                </div>
+                <!-- Data table replaces this empty state entirely -->
+                <div id="recentRoutesTable" style="margin: 0; padding: 0;">
+                    <div class="skeleton" style="height: 200px;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

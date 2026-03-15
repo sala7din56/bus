@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live View - Erbil Bus Transit</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <style>
+        #liveMap {
+            width: 100%;
+            height: calc(100vh - 120px);
+            border-radius: var(--radius-card);
+            z-index: 1;
+        }
+        .bus-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .bus-popup .leaflet-popup-content-wrapper {
+            border-radius: var(--radius-card);
+        }
+        .bus-popup .leaflet-popup-content {
+            margin: 12px 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-logo-area">
+            <span class="material-icons">directions_bus</span>
+            <span class="logo-text">Erbil Bus Transit</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-item">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+            <a href="live.html" class="sidebar-item active">
+                <span class="material-icons">map</span> Live View
+            </a>
+            <a href="routes.html" class="sidebar-item">
+                <span class="material-icons">route</span> Routes & Stops
+            </a>
+            <a href="buses.html" class="sidebar-item">
+                <span class="material-icons">directions_bus</span> Buses
+            </a>
+            <a href="schedules.html" class="sidebar-item">
+                <span class="material-icons">schedule</span> Schedules
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="admin-profile-sm">
+                <div class="admin-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;" id="adminName">Admin User</div>
+                    <div style="font-size: 12px; opacity: 0.6;">Administrator</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Live View</h1>
+                <div class="page-subtitle">نەخشەی ڕاستەوخۆ</div>
+            </div>
+            
+            <div class="topbar-center" style="display: flex; align-items: center; justify-content: center;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--color-green); background: rgba(16, 185, 129, 0.1); padding: 8px 16px; border-radius: 20px;">
+                    <span class="material-icons" style="font-size: 18px;" id="liveIndicator">my_location</span>
+                    <span style="font-size: 14px;">Live tracking active</span>
+                </div>
+            </div>
+            
+            <div class="topbar-right">
+                <div style="margin-right: 16px;">
+                    <label for="switch" class="switch">
+                        <input id="switch" type="checkbox" />
+                        <span class="slider"></span>
+                        <span class="decoration"></span>
+                    </label>
+                </div>
+                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">A</div>
+            </div>
+        </header>
+
+        <main class="main-content" style="padding-top: 20px;">
+            <div id="liveMap"></div>
+        </main>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script type="module" src="js/live.js"></script>
+</body>
+</html>

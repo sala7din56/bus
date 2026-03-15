@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routes & Stops - Erbil Bus Transit</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo-area">
+            <span class="material-icons">directions_bus</span>
+            <span class="logo-text">Erbil Bus Transit</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-item">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+            <a href="live.html" class="sidebar-item">
+                <span class="material-icons">map</span> Live View
+            </a>
+            <a href="routes.html" class="sidebar-item active">
+                <span class="material-icons">route</span> Routes & Stops
+            </a>
+            <!-- Removed separate Stops link as they are now merged -->
+            <a href="buses.html" class="sidebar-item">
+                <span class="material-icons">directions_bus</span> Buses
+            </a>
+            <a href="schedules.html" class="sidebar-item">
+                <span class="material-icons">schedule</span> Schedules
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="admin-profile-sm">
+                <div class="admin-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;" id="adminName">Admin User</div>
+                    <div style="font-size: 12px; opacity: 0.6;">Administrator</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Routes & Stops</h1>
+                <div class="page-subtitle">ڕێگاکان و وێستگەکان</div>
+            </div>
+            
+            <div class="topbar-center">
+                <div class="search-bar">
+                    <span class="material-icons">search</span>
+                    <input type="text" placeholder="Search routes..." id="searchInput">
+                </div>
+            </div>
+            
+            <div class="topbar-right">
+                <div style="margin-right: 16px;">
+                    <label for="switch" class="switch">
+                        <input id="switch" type="checkbox" />
+                        <span class="slider"></span>
+                        <span class="decoration"></span>
+                    </label>
+                </div>
+                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">A</div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="card-container" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div class="card-title">Manage Routes</div>
+                    <button class="btn btn-primary" id="addRouteBtn">
+                        <span class="material-icons">add</span> Add Route
+                    </button>
+                </div>
+                <!-- Table rendered here -->
+                <div id="routesTableContainer">
+                    <div class="skeleton" style="height: 400px; margin: 20px;"></div>
+                </div>
+            </div>
+
+            <div class="card-container">
+                <div class="card-header">
+                    <div class="card-title">Manage Transit Stops</div>
+                    <button class="btn btn-primary" id="addStopBtn" style="background: var(--color-teal); border-color: var(--color-teal);">
+                        <span class="material-icons">add</span> Add Stop
+                    </button>
+                </div>
+                <div id="stopsTableContainer">
+                    <div class="skeleton" style="height: 400px; margin: 20px;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script type="module" src="js/routes.js"></script>
+<script type="module" src="js/stops.js"></script>
+</body>
+</html>
