@@ -11,9 +11,14 @@
 <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-logo-area">
-            <span class="material-icons">directions_bus</span>
-            <span class="logo-text">Erbil Bus Transit</span>
+        <div class="sidebar-logo-area" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons">directions_bus</span>
+                <span class="logo-text">Erbil Bus Transit</span>
+            </div>
+            <button class="menu-close-btn" id="mobileMenuCloseBtn">
+                <span class="material-icons">close</span>
+            </button>
         </div>
         
         <nav class="sidebar-nav">
@@ -26,11 +31,21 @@
             <a href="routes.html" class="sidebar-item">
                 <span class="material-icons">route</span> Routes & Stops
             </a>
+            <a href="depots.html" class="sidebar-item">
+                <span class="material-icons">garage</span> Bus Depots
+            </a>
             <a href="buses.html" class="sidebar-item">
                 <span class="material-icons">directions_bus</span> Buses
             </a>
             <a href="schedules.html" class="sidebar-item">
                 <span class="material-icons">schedule</span> Schedules
+            </a>
+            <a href="drivers.html" class="sidebar-item">
+                <span class="material-icons">badge</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                    <span>Drivers</span>
+                    <span style="font-size: 10px; opacity: 0.7;" dir="rtl">شۆفێرەکان</span>
+                </div>
             </a>
         </nav>
 
@@ -52,9 +67,14 @@
     <div class="main-wrapper">
         <!-- Topbar -->
         <header class="topbar">
-            <div class="topbar-left">
-                <h1 class="page-title">Dashboard</h1>
-                <div class="page-subtitle">داسبۆرد</div>
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle-btn" id="mobileMenuBtn">
+                    <span class="material-icons">menu</span>
+                </button>
+                <div>
+                    <h1 class="page-title">Dashboard</h1>
+                    <div class="page-subtitle" dir="rtl">تەختەی سەرەکی</div>
+                </div>
             </div>
             
             <div class="topbar-center">
@@ -64,6 +84,7 @@
                 </div>
             </div>
             
+            <div class="topbar-right">
                 <div style="margin-right: 16px;">
                     <label for="switch" class="switch">
                         <input id="switch" type="checkbox" />
@@ -71,14 +92,16 @@
                         <span class="decoration"></span>
                     </label>
                 </div>
+                <button class="icon-btn">
                     <span class="material-icons">notifications</span>
                 </button>
-                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px;">A</div>
+                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">A</div>
             </div>
         </header>
 
         <!-- Actual Page Content -->
         <main class="main-content">
+            <div id="dashboardAlerts" style="margin-bottom: 20px;"></div>
             <div id="statsGrid" class="stats-grid skeleton" style="min-height: 120px; border-radius: var(--radius-card);">
                 <!-- Stat cards rendered here by JS -->
             </div>

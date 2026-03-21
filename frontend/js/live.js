@@ -28,11 +28,14 @@ function initMap() {
     }).addTo(map);
 }
 
+let routeLines = [];
+
 async function loadLiveMapData() {
     try {
-        const [stops, buses] = await Promise.all([
+        const [stops, buses, routes] = await Promise.all([
             api.stops.list(),
-            api.buses.list()
+            api.buses.list(),
+            api.routes.list()
         ]);
 
         // Draw Stops as small subtle dots
@@ -50,12 +53,81 @@ async function loadLiveMapData() {
             stopMarkers.push(marker);
         });
 
+        // Draw route lines connecting the stops
+        renderRouteLines(routes);
+
         // Initial buses draw
         renderBuses(buses);
     } catch (err) {
         showToast('Failed to load map data', 'error');
         console.error(err);
     }
+}
+
+function renderRouteLines(routes) {
+    // Clear any existing route lines if we're re-rendering
+    routeLines.forEach(line => map.removeLayer(line));
+    routeLines = [];
+
+    routes.forEach(route => {
+        // Skip routes with fewer than 2 stops because we can't draw a line
+        if (!route.schedules || route.schedules.length < 2) return;
+
+        // Extract ordered coordinates
+        const latlngs = route.schedules.map(sched => [sched.stop.latitude, sched.stop.longitude]);
+        const color = route.colorHex || '#1877F2';
+
+        if (route.status === 'RUNNING') {
+            // Priority 1: Solid Route Color
+            const line = L.polyline(latlngs, {
+                color: color,
+                weight: 4,
+                opacity: 0.8,
+                smoothFactor: 1
+            }).addTo(map);
+            
+            line.bindPopup(`<b>${route.name}</b><br>Status: Running`);
+            routeLines.push(line);
+            
+        } else if (route.status === 'DELAYED') {
+            // Priority 2: Yellow Base + Dotted Route Color Overlay
+            const baseLine = L.polyline(latlngs, {
+                color: '#eab308', // Yellow base
+                weight: 5,
+                opacity: 0.9,
+            }).addTo(map);
+            
+            const overlayLine = L.polyline(latlngs, {
+                color: color,
+                weight: 3,
+                opacity: 1,
+                dashArray: '5, 10' // dotted effect
+            }).addTo(map);
+            
+            baseLine.bindPopup(`<b>${route.name}</b><br>Status: Delayed`);
+            overlayLine.bindPopup(`<b>${route.name}</b><br>Status: Delayed`);
+            routeLines.push(baseLine, overlayLine);
+            
+        } else {
+            // Priority 3: Red Base + Dotted Route Color Overlay (Out of Service)
+            const baseLine = L.polyline(latlngs, {
+                color: '#ef4444', // Red base
+                weight: 5,
+                opacity: 0.9,
+            }).addTo(map);
+            
+            const overlayLine = L.polyline(latlngs, {
+                color: color,
+                weight: 3,
+                opacity: 1,
+                dashArray: '5, 10' // dotted effect
+            }).addTo(map);
+            
+            baseLine.bindPopup(`<b>${route.name}</b><br>Status: Out of Service`);
+            overlayLine.bindPopup(`<b>${route.name}</b><br>Status: Out of Service`);
+            routeLines.push(baseLine, overlayLine);
+        }
+    });
 }
 
 async function updateBusesSilent() {

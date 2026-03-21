@@ -5,15 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Routes & Stops - Erbil Bus Transit</title>
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+
 </head>
 <body>
 
 <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-logo-area">
-            <span class="material-icons">directions_bus</span>
-            <span class="logo-text">Erbil Bus Transit</span>
+        <div class="sidebar-logo-area" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons">directions_bus</span>
+                <span class="logo-text">Erbil Bus Transit</span>
+            </div>
+            <button class="menu-close-btn" id="mobileMenuCloseBtn">
+                <span class="material-icons">close</span>
+            </button>
         </div>
         
         <nav class="sidebar-nav">
@@ -26,12 +34,21 @@
             <a href="routes.html" class="sidebar-item active">
                 <span class="material-icons">route</span> Routes & Stops
             </a>
-            <!-- Removed separate Stops link as they are now merged -->
+            <a href="depots.html" class="sidebar-item">
+                <span class="material-icons">garage</span> Bus Depots
+            </a>
             <a href="buses.html" class="sidebar-item">
                 <span class="material-icons">directions_bus</span> Buses
             </a>
             <a href="schedules.html" class="sidebar-item">
                 <span class="material-icons">schedule</span> Schedules
+            </a>
+            <a href="drivers.html" class="sidebar-item">
+                <span class="material-icons">badge</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                    <span>Drivers</span>
+                    <span style="font-size: 10px; opacity: 0.7;" dir="rtl">شۆفێرەکان</span>
+                </div>
             </a>
         </nav>
 
@@ -51,9 +68,14 @@
 
     <div class="main-wrapper">
         <header class="topbar">
-            <div class="topbar-left">
-                <h1 class="page-title">Routes & Stops</h1>
-                <div class="page-subtitle">ڕێگاکان و وێستگەکان</div>
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle-btn" id="mobileMenuBtn">
+                    <span class="material-icons">menu</span>
+                </button>
+                <div>
+                    <h1 class="page-title">Routes & Stops</h1>
+                    <div class="page-subtitle" dir="rtl">ڕێگاکان و وێستگەکان</div>
+                </div>
             </div>
             
             <div class="topbar-center">
@@ -75,36 +97,148 @@
             </div>
         </header>
 
-        <main class="main-content">
-            <div class="card-container" style="margin-bottom: 24px;">
-                <div class="card-header">
-                    <div class="card-title">Manage Routes</div>
-                    <button class="btn btn-primary" id="addRouteBtn">
-                        <span class="material-icons">add</span> Add Route
+        <main class="main-content" style="padding: 0;">
+            <div class="routes-page">
+                <div class="map-toolbar" id="mapToolbar">
+                    <select class="route-selector" id="mapRouteSelector" style="width: 220px; background-color: #F3F4F6; border-radius: 12px; height: 44px; padding: 0 12px; font-weight: 600;">
+                        <option value="">-- All Routes --</option>
+                    </select>
+                    <button class="toolbar-btn" id="drawRouteBtn" style="color: var(--color-teal); border-color: var(--color-teal);">
+                        <span class="material-icons" style="font-size: 16px;">timeline</span> Draw Route Path
+                    </button>
+                    <button class="toolbar-btn btn-ghost" id="clearPathBtn" style="color: var(--color-text-muted);">
+                        <span class="material-icons" style="font-size: 16px;">delete_outline</span> Clear Path
+                    </button>
+                    <button class="toolbar-btn" id="saveMapBtn" style="background: var(--color-teal); color: white; border-color: var(--color-teal);" disabled>
+                        <span class="material-icons" style="font-size: 16px;">save</span> Save Path
+                    </button>
+                    <button class="toolbar-btn btn-ghost" id="exportMapBtn" style="border: 2px solid var(--color-border);">
+                        <span class="material-icons" style="font-size: 16px;">download</span> Export Map
+                    </button>
+                    <!-- Extra map controls: Fit All, Center Erbil -->
+                    <button class="toolbar-btn btn-ghost" id="fitAllBtn" style="border: 2px solid var(--color-border); margin-left: auto;" title="Fit All Stops">
+                        <span class="material-icons" style="font-size: 16px;">zoom_out_map</span>
+                    </button>
+                    <button class="toolbar-btn btn-ghost" id="centerErbilBtn" style="border: 2px solid var(--color-border);" title="Center Erbil">
+                        <span class="material-icons" style="font-size: 16px;">my_location</span>
+                    </button>
+                    <button class="toolbar-btn btn-ghost" id="mapStyleBtn" style="border: 2px solid var(--color-border); padding: 8px; width: 40px; justify-content: center;" title="Toggle Map Style">
+                        <span class="material-icons" style="font-size: 18px;">layers</span>
                     </button>
                 </div>
-                <!-- Table rendered here -->
-                <div id="routesTableContainer">
-                    <div class="skeleton" style="height: 400px; margin: 20px;"></div>
-                </div>
-            </div>
+                
+                <div class="map-workspace" id="mapWorkspace">
+                    <!-- Left Panel -->
+                    <div class="routes-sidebar" id="routesSidebar">
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                            <div class="search-bar" style="flex: 1; position: relative;">
+                                <span class="material-icons" style="position: absolute; left: 14px; top: 10px; color: var(--color-text-muted);">search</span>
+                                <input type="text" placeholder="Search routes..." id="routesSidebarSearch" style="width: 100%; border-radius: 25px; background: #F3F4F6; height: 44px; padding: 0 16px 0 44px; border: 1px solid transparent; font-family: var(--font-body); outline: none; transition: border 0.2s;">
+                            </div>
+                            <button class="btn btn-primary" id="addRouteBtn" style="height: 44px; border-radius: 22px; padding: 0 16px; display: flex; align-items: center; justify-content: center; min-width: 44px;" title="Add New Route">
+                                <span class="material-icons">add</span>
+                            </button>
+                        </div>
+                        <!-- Stats summary -->
+                        <div class="stats-summary" id="statsSummary" style="margin-bottom: 16px; font-size: 13px; color: var(--color-text-muted); padding: 0 4px; font-weight: 500;">
+                            Loading routes...
+                        </div>
+                        <!-- Route cards list -->
+                        <div class="route-cards-list" id="routeCardsList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;"></div>
+                        
+                        <!-- Stop list for active route -->
+                        <div id="activeRouteStopsSection" style="display: none; border-top: 1px solid var(--color-border); padding-top: 16px;">
+                            <h4 style="margin-bottom: 12px; font-size: 14px;" id="activeRouteStopsTitle">Stops on Route</h4>
+                            <div class="stop-list" id="activeRouteStopsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                    </div>
 
-            <div class="card-container">
-                <div class="card-header">
-                    <div class="card-title">Manage Transit Stops</div>
-                    <button class="btn btn-primary" id="addStopBtn" style="background: var(--color-teal); border-color: var(--color-teal);">
-                        <span class="material-icons">add</span> Add Stop
-                    </button>
-                </div>
-                <div id="stopsTableContainer">
-                    <div class="skeleton" style="height: 400px; margin: 20px;"></div>
+                    <!-- Right Panel (Map Area) -->
+                    <div class="map-container" id="mapCardContainer">
+                        <button id="focusModeBtn" class="focus-mode-toggle" title="Focus Mode" style="position: absolute; top: 12px; right: 12px; z-index: 1000; background: white; border: none; width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <span class="material-icons" style="font-size: 20px; color: var(--color-text-dark);">fullscreen</span>
+                        </button>
+                        
+                        <!-- Floating overlay panel for focus mode -->
+                        <div id="focusModeOverlay" class="focus-mode-overlay" style="display: none; position: absolute; top: 12px; left: 12px; z-index: 1000; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 12px 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); min-width: 200px;">
+                            <h3 id="focusOverlayTitle" style="margin-bottom: 4px; font-size: 16px;">All Routes</h3>
+                            <p id="focusOverlaySubtitle" style="font-size: 12px; color: var(--color-text-muted);">Showing all network stops</p>
+                        </div>
+                        
+                        <div id="mapLoader" class="map-loader" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 999; display: flex; align-items: center; justify-content: center;">
+                            <span class="material-icons spin" style="font-size: 32px; color: var(--color-teal);">refresh</span>
+                        </div>
+
+                        <!-- Add custom map overlay instructions for drawing mode -->
+                        <div id="drawInstructionsBanner" class="draw-banner" style="display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000; background: var(--color-navy); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            Click on the map to add waypoints. Right-click to remove. Drag to reorder.
+                        </div>
+                        
+                        <!-- Floating legend -->
+                        <div class="map-legend-floating" id="mapLegend" style="position: absolute; bottom: 12px; left: 12px; z-index: 1000; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; font-size: 12px;"></div>
+                        
+                        <!-- We still need a dedicated element for Leaflet -->
+                        <div id="routeMapBuilder" style="width: 100%; height: 100%; border-radius: inherit;"></div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 </div>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<!-- Leaflet MarkerCluster -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<!-- Add/Edit Route Modal -->
+<div id="routeModal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 id="routeModalTitle" class="modal-title">Add New Route</h2>
+            <button class="modal-close icon-btn" id="closeRouteModalBtn"><span class="material-icons">close</span></button>
+        </div>
+        <div class="modal-body">
+            <form id="routeForm">
+                <input type="hidden" id="routeId">
+                <div class="form-group">
+                    <label class="form-label">Route Name (English) *</label>
+                    <input type="text" id="routeName" class="form-control" required placeholder="e.g. Route 10 - Express">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Route Name (Kurdish) *</label>
+                    <input type="text" id="routeNameKurdish" class="form-control" required placeholder="ناوی ڕێگا" dir="rtl">
+                </div>
+                <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label class="form-label">Color Hex</label>
+                        <input type="color" id="routeColorHex" class="form-control" value="#1877F2" style="padding: 4px; cursor: pointer; height: 48px;">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label class="form-label">Status</label>
+                        <select id="routeStatus" class="form-control">
+                            <option value="RUNNING">Running</option>
+                            <option value="DELAYED">Delayed</option>
+                            <option value="OUT_OF_SERVICE">Out of Service</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Description</label>
+                    <textarea id="routeDescription" class="form-control" rows="3" placeholder="Route description..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="cancelRouteBtn">Cancel</button>
+            <button class="btn btn-primary" id="saveRouteBtn">Save Route</button>
+        </div>
+    </div>
+</div>
+
+<!-- html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module" src="js/routes.js"></script>
-<script type="module" src="js/stops.js"></script>
 </body>
 </html>

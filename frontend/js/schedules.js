@@ -75,7 +75,17 @@ function renderTable(schedules) {
         }
     };
 
-    const rowsHTML = schedules.map(s => {
+    // Naturally sort by route name (e.g., "Route 2" before "Route 10")
+    // If no route exists, stick it at the end
+    const sortedSchedules = [...schedules].sort((a, b) => {
+        const nameA = a.route ? a.route.name : 'Z';
+        const nameB = b.route ? b.route.name : 'Z';
+        
+        // Use intra-string numeric comparison
+        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    const rowsHTML = sortedSchedules.map(s => {
         const busId = s.bus ? s.bus.id.substring(s.bus.id.length - 6).toUpperCase() : '-';
         const realtimeBadge = s.isRealtime ? 
             `<span class="status-pill status-RUNNING" style="position: relative; padding-left: 20px;">

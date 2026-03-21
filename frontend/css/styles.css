@@ -67,11 +67,36 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
   position: fixed;
   top: 0;
-  left: 0;
+  left: calc(var(--sidebar-width) * -1); /* Hidden by default */
   bottom: 0;
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 1000;
+  transition: left 0.3s ease;
+  box-shadow: var(--shadow-modal);
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* Sidebar overlay for clicking outside to close */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
 }
 
 .sidebar-logo-area {
@@ -189,10 +214,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .main-wrapper {
-  margin-left: var(--sidebar-width);
+  margin-left: 0; /* Changed from var(--sidebar-width) to 0 so it uses full width */
   flex: 1;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+@media (min-width: 1024px) {
+  /* On large screens, we can opt to keep it open or just let the user toggle it. 
+     The user explicitly asked to free up web space, so we'll keep it collapsed by default everywhere 
+     and just rely on the toggle button. */
 }
 
 .topbar {
@@ -206,6 +238,42 @@ h1, h2, h3, h4, h5, h6 {
   position: sticky;
   top: 0;
   z-index: 90;
+}
+
+.menu-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.menu-toggle-btn:hover {
+  background: var(--color-input-bg);
+}
+
+.menu-close-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  opacity: 0.8;
+}
+
+.menu-close-btn:hover {
+  background: rgba(255,255,255,0.1);
+  opacity: 1;
 }
 
 .topbar-left .page-title {
@@ -693,6 +761,52 @@ input:checked + .slider:before {
   box-shadow: inset 15px -4px 0px 15px #efdf2b, 0 0 10px 0px #efdf2b;
 }
 
+/* Form Toggle Switch (for in-form toggles) */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--color-teal);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
 /* Toasts */
 .toast-container {
   position: fixed;
@@ -754,3 +868,176 @@ input:checked + .slider:before {
   animation: spin 1s linear infinite;
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* =========================================
+   ROUTES PAGE SPECIFIC STYLES
+   ========================================= */
+
+.routes-page {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  height: calc(100vh - var(--topbar-height));
+  gap: 0;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--color-card);
+  border-radius: 16px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.06);
+}
+
+.map-toolbar .toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-btn);
+  border: 2px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text-dark);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-body);
+}
+
+.map-toolbar .toolbar-btn:hover:not(:disabled) {
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+}
+
+.map-toolbar .toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0,0,0,0.05);
+  border-color: transparent;
+}
+
+.map-toolbar .toolbar-btn.active {
+  background: var(--color-teal);
+  border-color: var(--color-teal);
+  color: white;
+}
+
+.map-workspace {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 16px;
+  min-height: 0; /* critical for scroll containment */
+  transition: all 0.3s ease;
+}
+
+.routes-sidebar {
+  background: var(--color-card);
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.06);
+  overflow-y: auto;
+  padding: 20px;
+  transition: all 0.3s ease;
+  min-height: 0; /* critical for scroll containment */
+}
+
+/* Make custom scrollbar for sidebar */
+.routes-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.routes-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.routes-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+.map-container {
+  background: var(--color-card);
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.06);
+  overflow: hidden;
+  position: relative;
+  min-height: 500px;
+  transition: all 0.3s ease;
+}
+
+/* Focus Mode */
+.map-workspace.focus-mode {
+  grid-template-columns: 0px 1fr;
+  gap: 0;
+}
+
+.map-workspace.focus-mode .routes-sidebar {
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  margin: 0;
+}
+
+/* Route Cards & Stops */
+.route-card {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  background: var(--color-card);
+}
+.route-card:hover {
+  background: rgba(0,188,212,0.04);
+}
+.route-card.selected {
+  border-left: 3px solid var(--color-teal);
+  background: rgba(0,188,212,0.04);
+}
+.route-color-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.stop-list-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+.stop-list-item:hover {
+  background: rgba(0,188,212,0.1);
+}
+.stop-list-num {
+  font-weight: 700;
+  color: var(--color-text-muted);
+  width: 16px;
+  text-align: right;
+}
+
+/* Leaflet Overrides */
+.leaflet-bar a, .leaflet-bar a:hover {
+  border-radius: 8px !important;
+  background-color: var(--color-card) !important;
+  color: var(--color-text-dark) !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+  margin-bottom: 4px;
+}
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: none !important;
+}

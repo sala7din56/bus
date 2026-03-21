@@ -70,5 +70,24 @@ export const api = {
     create: (data) => apiRequest('POST', '/schedules', data),
     update: (id, data) => apiRequest('PUT', `/schedules/${id}`, data),
     delete: (id) => apiRequest('DELETE', `/schedules/${id}`)
+  },
+  depots: {
+    list: () => apiRequest('GET', '/depots'),
+    get: (id) => apiRequest('GET', `/depots/${id}`),
+    create: (data) => apiRequest('POST', '/depots', data),
+    update: (id, data) => apiRequest('PUT', `/depots/${id}`, data),
+    delete: (id) => apiRequest('DELETE', `/depots/${id}`)
+  },
+  drivers: {
+    list: (params = '') => apiRequest('GET', `/drivers${params}`),
+    get: (id) => apiRequest('GET', `/drivers/${id}`),
+    create: (data) => apiRequest('POST', '/drivers', data),
+    update: (id, data) => apiRequest('PUT', `/drivers/${id}`, data),
+    delete: (id) => apiRequest('DELETE', `/drivers/${id}`),
+    updateStatus: (id, data) => apiRequest('PATCH', `/drivers/${id}/status`, data),
+    assignRoute: (id, data) => apiRequest('PATCH', `/drivers/${id}/assign-route`, data),
+    assignBus: (id, data) => apiRequest('PATCH', `/drivers/${id}/assign-bus`, data),
+    stats: () => apiRequest('GET', '/drivers/stats'),
+    expiring: (days = 30) => apiRequest('GET', `/drivers/licenses/expiring?days=${days}`)
   }
 };

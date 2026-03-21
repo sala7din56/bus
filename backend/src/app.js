@@ -8,11 +8,17 @@ const routeRoutes = require('./routes/routes');
 const stopRoutes = require('./routes/stops');
 const busRoutes = require('./routes/buses');
 const scheduleRoutes = require('./routes/schedules');
+const depotRoutes = require('./routes/depots');
+const activityRoutes = require('./routes/activity');
+const settingsRoutes = require('./routes/settings');
+const driverRoutes = require('./routes/drivers');
 const authMiddleware = require('./middleware/auth');
 
 const app = express();
 const prisma = new PrismaClient();
-require('./simulator');
+if (process.env.NODE_ENV !== 'test') {
+  require('./simulator');
+}
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -28,11 +34,15 @@ app.use('/api/routes', routeRoutes);
 app.use('/api/stops', stopRoutes);
 app.use('/api/buses', busRoutes);
 app.use('/api/schedules', scheduleRoutes);
+app.use('/api/depots', depotRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/drivers', driverRoutes);
 
 // Dashboard Stats
 app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
   try {
-    const [totalRoutes, activeBuses, totalStops, delayedBuses, recentRoutes] = await Promise.all([
+    const [totalRoutes, activeBuses, totalStops, delayedBuses, recentRoutes, totalDrivers, activeDrivers, driversOnLeave, licensesExpiringSoon] = await Promise.all([
       prisma.route.count(),
       prisma.bus.count({ where: { status: 'RUNNING' } }),
       prisma.stop.count(),
@@ -42,6 +52,17 @@ app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
         orderBy: { createdAt: 'desc' },
         include: { _count: { select: { buses: true } } },
       }),
+      prisma.driver.count(),
+      prisma.driver.count({ where: { status: 'ACTIVE' } }),
+      prisma.driver.count({ where: { status: 'ON_LEAVE' } }),
+      prisma.driver.count({
+        where: {
+          licenseExpiry: {
+            lte: new Date(new Date().setDate(new Date().getDate() + 30)),
+            gt: new Date()
+          }
+        }
+      })
     ]);
 
     res.json({
@@ -50,6 +71,10 @@ app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
       totalStops,
       delayedBuses,
       recentRoutes,
+      totalDrivers,
+      activeDrivers,
+      driversOnLeave,
+      licensesExpiringSoon
     });
   } catch (err) {
     console.error('Dashboard stats error:', err);
@@ -68,8 +93,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚌 Erbil Bus Transit API running on http://localhost:${PORT}`);
-});
+// Only start listening when run directly (not when required by tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚌 Erbil Bus Transit API running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;

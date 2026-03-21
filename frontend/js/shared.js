@@ -20,6 +20,43 @@ export function renderStatCard(icon, colorAccent, pillLabel, number, subtitle) {
     `;
 }
 
+export function confirmModal(message, onConfirm) {
+    const existingModal = document.querySelector('.confirm-backdrop');
+    if (existingModal) existingModal.remove();
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop confirm-backdrop';
+    backdrop.innerHTML = `
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-body" style="padding: 30px 20px 10px;">
+                <div style="margin-bottom: 20px;">
+                    <span class="material-icons" style="font-size: 48px; color: var(--color-orange); opacity: 0.8;">warning</span>
+                </div>
+                <h3 style="margin-bottom: 12px; line-height: 1.4;">${message}</h3>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 12px; border-top: none; padding-bottom: 24px;">
+                <button type="button" class="btn btn-ghost" id="confirmCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmOkBtn" style="background: var(--color-red); border-color: var(--color-red);">Yes, Delete</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    void backdrop.offsetWidth;
+    backdrop.classList.add('active');
+
+    const closeModal = () => {
+        backdrop.classList.remove('active');
+        setTimeout(() => backdrop.remove(), 300);
+    };
+
+    backdrop.querySelector('#confirmCancelBtn').onclick = closeModal;
+    backdrop.querySelector('#confirmOkBtn').onclick = () => {
+        closeModal();
+        onConfirm();
+    };
+}
+
 export function renderModal(title, formHTML, onSave) {
     const existingModal = document.querySelector('.modal-backdrop');
     if (existingModal) existingModal.remove();
@@ -27,7 +64,7 @@ export function renderModal(title, formHTML, onSave) {
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
-        <div class="modal-card"">
+        <div class="modal-card">
             <div class="modal-header">
                 <div class="modal-title">${title}</div>
                 <button class="modal-close"><span class="material-icons">close</span></button>
@@ -149,7 +186,54 @@ export function initGlobalUI() {
         }
     });
 
+    setupSidebarToggle();
     animateCountUps();
+}
+
+function setupSidebarToggle() {
+    // Create overlay if it doesn't exist
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    const closeBtn = document.getElementById('mobileMenuCloseBtn');
+
+    if (menuBtn && sidebar) {
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+        });
+    }
+
+    if (closeBtn && sidebar) {
+        closeBtn.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        });
+    }
+
+    // Close on overlay click
+    if (overlay && sidebar) {
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        });
+    }
+
+    // Optional: close sidebar when a link is clicked (useful for mobile)
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        });
+    });
 }
 
 export function animateCountUps() {

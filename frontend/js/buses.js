@@ -37,12 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadDependencies() {
     try {
-        const [routes, stops] = await Promise.all([
+        const [routes, stops, depots] = await Promise.all([
             api.routes.list(),
-            api.stops.list()
+            api.stops.list(),
+            api.depots.list()
         ]);
         allRoutes = routes;
         window.allStops = stops; // Make available for modal
+        window.allDepots = depots; // Make available for modal/table
     } catch (err) {
         console.error('Failed to load dependencies', err);
     }
@@ -86,7 +88,7 @@ function timeSince(dateString) {
 
 function renderTable(buses) {
     const container = document.getElementById('busesTableContainer');
-    const columns = ['Bus ID', 'Route', 'Position', 'Status', 'Next Stop', 'Last Updated', 'Actions'];
+    const columns = ['Bus ID', 'Route', 'Depot', 'Position', 'Status', 'Next Stop', 'Last Updated', 'Actions'];
     
     window.editBus = (id) => {
         const bus = allBuses.find(b => b.id === id);
@@ -117,10 +119,14 @@ function renderTable(buses) {
             </div>
         ` : '<span style="color: var(--color-text-muted)">Unassigned</span>';
 
+        const depot = (window.allDepots || []).find(dp => dp.id === b.depotId);
+        const depotDisplay = depot ? `<span style="font-size: 13px; font-weight: 500;"><span class="material-icons" style="font-size: 14px; vertical-align: middle; color: ${depot.colorHex || 'var(--color-primary)'}">garage</span> ${depot.name}</span>` : '<span style="color: var(--color-text-muted)">—</span>';
+
         return `
         <tr>
             <td style="font-family: monospace; font-weight: 600; color: var(--color-text-muted);">${b.id.substring(b.id.length - 6).toUpperCase()}</td>
             <td style="font-weight: 600;">${routeDisplay}</td>
+            <td>${depotDisplay}</td>
             <td style="font-family: monospace; color: var(--color-text-muted); font-size: 13px;">${b.latitude.toFixed(4)}°N, ${b.longitude.toFixed(4)}°E</td>
             <td>${renderStatusPill(b.status)}</td>
             <td>${b.nextStopName || '-'}</td>
@@ -143,7 +149,7 @@ function openBusModal(bus = null) {
     const isEdit = !!bus;
     const title = isEdit ? 'Edit Bus' : 'Add Bus';
     
-    const d = bus || { routeId: '', latitude: 36.1910, longitude: 44.0085, status: 'RUNNING', nextStopName: '' };
+    const d = bus || { routeId: '', depotId: '', latitude: 36.1910, longitude: 44.0085, status: 'RUNNING', nextStopName: '' };
     
     const routeOptions = allRoutes.map(r => 
         `<option value="${r.id}" ${d.routeId === r.id ? 'selected' : ''}>${r.name}</option>`
@@ -157,12 +163,21 @@ function openBusModal(bus = null) {
     const formHTML = `
         <input type="hidden" id="busId" value="${d.id || ''}">
         
-        <div class="form-group">
-            <label class="form-label" for="busRouteId">Assigned Route</label>
-            <select id="busRouteId" class="form-control" required>
-                <option value="">-- Select Route --</option>
-                ${routeOptions}
-            </select>
+        <div style="display: flex; gap: 12px;">
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="busRouteId">Assigned Route</label>
+                <select id="busRouteId" class="form-control" required>
+                    <option value="">-- Select Route --</option>
+                    ${routeOptions}
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="busDepotId">Assigned Depot</label>
+                <select id="busDepotId" class="form-control">
+                    <option value="">-- No Depot --</option>
+                    ${(window.allDepots || []).map(dp => `<option value="${dp.id}" ${d.depotId === dp.id ? 'selected' : ''}>${dp.name}</option>`).join('')}
+                </select>
+            </div>
         </div>
         
         <div class="flex-between gap-4">
@@ -199,6 +214,7 @@ function openBusModal(bus = null) {
     renderModal(title, formHTML, async (form, closeModal) => {
         const data = {
             routeId: document.getElementById('busRouteId').value,
+            depotId: document.getElementById('busDepotId').value || null,
             latitude: parseFloat(document.getElementById('busLat').value),
             longitude: parseFloat(document.getElementById('busLng').value),
             status: document.getElementById('busStatus').value,

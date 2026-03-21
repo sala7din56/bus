@@ -26,7 +26,23 @@ async function loadDashboard() {
             <a href="schedules.html" style="text-decoration: none; color: inherit; display: block;">
                 ${renderStatCard('schedule', 'orange', 'Delayed', stats.delayedBuses, 'Buses delayed')}
             </a>
+            <a href="drivers.html" style="text-decoration: none; color: inherit; display: block;">
+                ${renderStatCard('badge', 'navy', 'Drivers', stats.totalDrivers || 0, 'Total payroll')}
+            </a>
         `;
+        
+        const alertsContainer = document.getElementById('dashboardAlerts');
+        if (alertsContainer && stats.licensesExpiringSoon > 0) {
+            alertsContainer.innerHTML = `
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-red); color: var(--color-red); padding: 16px; border-radius: var(--radius-btn); display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="material-icons">warning</span>
+                        <span style="font-weight: 600;">Action Required: ${stats.licensesExpiringSoon} driver license(s) expiring within 30 days!</span>
+                    </div>
+                    <a href="drivers.html?filter=expiring" class="btn" style="background: var(--color-red); color: white; padding: 6px 12px; font-size: 13px;">View Renewals</a>
+                </div>
+            `;
+        }
         
         // Init counter animation
         animateCountUps();

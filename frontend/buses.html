@@ -10,9 +10,14 @@
 
 <div class="app-container">
     <aside class="sidebar">
-        <div class="sidebar-logo-area">
-            <span class="material-icons">directions_bus</span>
-            <span class="logo-text">Erbil Bus Transit</span>
+        <div class="sidebar-logo-area" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons">directions_bus</span>
+                <span class="logo-text">Erbil Bus Transit</span>
+            </div>
+            <button class="menu-close-btn" id="mobileMenuCloseBtn">
+                <span class="material-icons">close</span>
+            </button>
         </div>
         
         <nav class="sidebar-nav">
@@ -25,11 +30,21 @@
             <a href="routes.html" class="sidebar-item">
                 <span class="material-icons">route</span> Routes & Stops
             </a>
+            <a href="depots.html" class="sidebar-item">
+                <span class="material-icons">garage</span> Bus Depots
+            </a>
             <a href="buses.html" class="sidebar-item active">
                 <span class="material-icons">directions_bus</span> Buses
             </a>
             <a href="schedules.html" class="sidebar-item">
                 <span class="material-icons">schedule</span> Schedules
+            </a>
+            <a href="drivers.html" class="sidebar-item">
+                <span class="material-icons">badge</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                    <span>Drivers</span>
+                    <span style="font-size: 10px; opacity: 0.7;" dir="rtl">شۆفێرەکان</span>
+                </div>
             </a>
         </nav>
 
@@ -49,9 +64,14 @@
 
     <div class="main-wrapper">
         <header class="topbar">
-            <div class="topbar-left">
-                <h1 class="page-title">Buses</h1>
-                <div class="page-subtitle">پاسەکان</div>
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle-btn" id="mobileMenuBtn">
+                    <span class="material-icons">menu</span>
+                </button>
+                <div>
+                    <h1 class="page-title">Buses</h1>
+                    <div class="page-subtitle" dir="rtl">پاسەکان</div>
+                </div>
             </div>
             
             <div class="topbar-center">

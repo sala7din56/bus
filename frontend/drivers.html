@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drivers - Erbil Bus Transit</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-logo-area" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons">directions_bus</span>
+                <span class="logo-text">Erbil Bus Transit</span>
+            </div>
+            <button class="menu-close-btn" id="mobileMenuCloseBtn">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-item">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+            <a href="live.html" class="sidebar-item">
+                <span class="material-icons">map</span> Live View
+            </a>
+            <a href="routes.html" class="sidebar-item">
+                <span class="material-icons">route</span> Routes & Stops
+            </a>
+            <a href="depots.html" class="sidebar-item">
+                <span class="material-icons">garage</span> Bus Depots
+            </a>
+            <a href="buses.html" class="sidebar-item">
+                <span class="material-icons">directions_bus</span> Buses
+            </a>
+            <a href="schedules.html" class="sidebar-item">
+                <span class="material-icons">schedule</span> Schedules
+            </a>
+            <a href="drivers.html" class="sidebar-item active">
+                <span class="material-icons">badge</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                    <span>Drivers</span>
+                    <span style="font-size: 10px; opacity: 0.7;" dir="rtl">شۆفێرەکان</span>
+                </div>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="admin-profile-sm">
+                <div class="admin-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;" id="adminName">Admin User</div>
+                    <div style="font-size: 12px; opacity: 0.6;">Administrator</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle-btn" id="mobileMenuBtn">
+                    <span class="material-icons">menu</span>
+                </button>
+                <div>
+                    <h1 class="page-title">Drivers</h1>
+                    <div class="page-subtitle" dir="rtl">شۆفێرەکان</div>
+                </div>
+            </div>
+            
+            <div class="topbar-center">
+                <div class="search-bar">
+                    <span class="material-icons">search</span>
+                    <input type="text" placeholder="Search drivers by name, code, phone..." id="searchInput">
+                </div>
+            </div>
+            
+            <div class="topbar-right">
+                <div style="margin-right: 16px;">
+                    <label for="switch" class="switch">
+                        <input id="switch" type="checkbox" />
+                        <span class="slider"></span>
+                        <span class="decoration"></span>
+                    </label>
+                </div>
+                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">A</div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Stat Cards -->
+            <div id="driverStatsGrid" class="stats-grid skeleton" style="min-height: 120px; border-radius: var(--radius-card); margin-bottom: 20px;">
+                <!-- Rendered by JS -->
+            </div>
+
+            <!-- Filter Bar -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center;">
+                <select id="filterStatus" class="form-control" style="width: 200px;">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="ON_LEAVE">On Leave</option>
+                    <option value="SUSPENDED">Suspended</option>
+                    <option value="RETIRED">Retired</option>
+                    <option value="TERMINATED">Terminated</option>
+                </select>
+                <select id="filterDepot" class="form-control" style="width: 200px;">
+                    <option value="">All Depots</option>
+                </select>
+                <select id="filterShift" class="form-control" style="width: 200px;">
+                    <option value="">All Shifts</option>
+                    <option value="MORNING">Morning</option>
+                    <option value="AFTERNOON">Afternoon</option>
+                    <option value="NIGHT">Night</option>
+                    <option value="ROTATING">Rotating</option>
+                </select>
+            </div>
+
+            <!-- Main Data Table -->
+            <div class="card-container">
+                <div class="card-header">
+                    <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                        Driver Roster
+                        <span id="refreshIndicator" class="material-icons" style="font-size: 16px; color: var(--color-text-muted); opacity: 0; transition: opacity 0.3s;">sync</span>
+                    </div>
+                    <button class="btn btn-primary" id="addDriverBtn">
+                        <span class="material-icons">person_add</span> Add Driver
+                    </button>
+                </div>
+                <div id="driversTableContainer">
+                    <div class="skeleton" style="height: 400px; margin: 20px;"></div>
+                </div>
+            </div>
+            
+            <!-- Sliding Detail Drawer -->
+            <div id="driverDrawer" class="drawer-overlay">
+                <div class="drawer-content">
+                    <div class="drawer-header">
+                        <h2 style="font-family: var(--font-heading); font-size: 18px;">Driver Details</h2>
+                        <button id="closeDrawerBtn" class="icon-btn"><span class="material-icons">close</span></button>
+                    </div>
+                    <div id="drawerBody" class="drawer-body">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script type="module" src="js/drivers.js"></script>
+
+<style>
+/* CSS for Sliding Detail Drawer */
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.drawer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.drawer-content {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: var(--color-card);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+[data-theme="dark"] .drawer-content {
+    border-left: 1px solid var(--color-border);
+}
+.drawer-overlay.active .drawer-content {
+    right: 0;
+}
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+.drawer-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+.drawer-section {
+    margin-bottom: 24px;
+    background: var(--color-input-bg);
+    padding: 16px;
+    border-radius: var(--radius-btn);
+}
+.drawer-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+}
+.drawer-item {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+.drawer-item:last-child {
+    margin-bottom: 0;
+}
+.drawer-label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.drawer-val {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-dark);
+}
+.driver-header-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.driver-photo-placeholder {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--color-teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+}
+
+/* Sub-tabs for modals */
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 20px;
+    gap: 0;
+}
+.modal-tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    transition: var(--transition);
+}
+.modal-tab:hover {
+    color: var(--color-text-dark);
+    background: var(--color-input-bg);
+}
+.modal-tab.active {
+    color: var(--color-teal);
+    border-bottom-color: var(--color-teal);
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</body>
+</html>

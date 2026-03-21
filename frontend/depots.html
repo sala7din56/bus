@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Depots - Erbil Bus Transit</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* ── Depot-specific layout ──────────────────────────────── */
+        .depots-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 0;
+            height: calc(100vh - 72px);
+            overflow: hidden;
+        }
+
+        /* ── Left panel – depot list ────────────────────────────── */
+        .depot-list-panel {
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            background: var(--color-surface);
+            overflow: hidden;
+        }
+        .depot-list-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .depot-list-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .depot-list-header-top h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .depot-list-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+        .depot-card {
+            padding: 16px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--color-border);
+            transition: background 0.15s;
+            position: relative;
+        }
+        .depot-card:hover { background: var(--color-border); }
+        .depot-card.selected {
+            background: rgba(0,188,212,0.08);
+            border-left: 3px solid var(--color-primary);
+        }
+        .depot-card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .depot-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .depot-name { font-weight: 600; font-size: 14px; }
+        .depot-meta {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            display: flex;
+            gap: 16px;
+        }
+        .depot-meta span { display: flex; align-items: center; gap: 4px; }
+        .depot-meta .material-icons { font-size: 14px; }
+
+        /* ── Right panel – tabbed buses/detail ──────────────────── */
+        .depot-right-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--color-background);
+        }
+
+        /* Empty state */
+        .depot-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--color-text-muted);
+            gap: 12px;
+            padding: 40px;
+            text-align: center;
+        }
+        .depot-empty-state .material-icons { font-size: 64px; opacity: 0.25; }
+        .depot-empty-state h3 { font-size: 18px; margin: 0; }
+        .depot-empty-state p { font-size: 14px; margin: 0; max-width: 280px; }
+
+        /* ── Depot detail header ────────────────────────────────── */
+        .depot-detail-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--color-surface);
+        }
+        .depot-color-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .depot-color-badge .material-icons { color: #fff; font-size: 26px; }
+        .depot-detail-info { flex: 1; min-width: 0; }
+        .depot-detail-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .depot-detail-sub {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin: 0;
+        }
+        .depot-detail-actions { display: flex; gap: 8px; }
+
+        /* ── Depot info strip ────────────────────────────────────── */
+        .depot-info-strip {
+            display: flex;
+            gap: 0;
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            flex-wrap: wrap;
+        }
+        .depot-info-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-size: 13px;
+            border-right: 1px solid var(--color-border);
+        }
+        .depot-info-chip .material-icons { font-size: 16px; opacity: 0.6; }
+        .depot-info-chip strong { font-weight: 600; }
+
+        /* ── Buses section ──────────────────────────────────────── */
+        .depot-buses-section {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .depot-buses-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-surface);
+        }
+        .depot-buses-header h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .buses-count-badge {
+            background: var(--color-primary);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 100px;
+        }
+        .depot-buses-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        /* ── Bus row in depot ────────────────────────────────────── */
+        .depot-bus-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .depot-bus-row:hover { background: var(--color-border); }
+        .depot-bus-row.selected { background: rgba(0,188,212,0.07); }
+        .bus-id-chip {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--color-border);
+            padding: 4px 8px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+        .bus-row-info { flex: 1; min-width: 0; }
+        .bus-row-route {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bus-row-meta {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+        .bus-row-status { flex-shrink: 0; }
+
+        /* ── Bus detail slide-in ────────────────────────────────── */
+        .bus-detail-panel {
+            position: relative;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            padding: 20px 24px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .bus-detail-panel.open { display: flex; }
+        .bus-detail-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bus-detail-panel-header h4 {
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+        .bus-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        .bus-detail-field {
+            background: var(--color-background);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .bus-detail-field-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .bus-detail-field-value {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .bus-detail-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .bus-route-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .color-dot-sm {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Responsive ─────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .depots-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            .depot-list-panel {
+                height: 240px;
+                border-right: none;
+                border-bottom: 1px solid var(--color-border);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-logo-area" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="material-icons">directions_bus</span>
+                <span class="logo-text">Erbil Bus Transit</span>
+            </div>
+            <button class="menu-close-btn" id="mobileMenuCloseBtn">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-item">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+            <a href="live.html" class="sidebar-item">
+                <span class="material-icons">map</span> Live View
+            </a>
+            <a href="routes.html" class="sidebar-item">
+                <span class="material-icons">route</span> Routes &amp; Stops
+            </a>
+            <a href="depots.html" class="sidebar-item active">
+                <span class="material-icons">garage</span> Bus Depots
+            </a>
+            <a href="buses.html" class="sidebar-item">
+                <span class="material-icons">directions_bus</span> Buses
+            </a>
+            <a href="schedules.html" class="sidebar-item">
+                <span class="material-icons">schedule</span> Schedules
+            </a>
+            <a href="drivers.html" class="sidebar-item">
+                <span class="material-icons">badge</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                    <span>Drivers</span>
+                    <span style="font-size: 10px; opacity: 0.7;" dir="rtl">شۆفێرەکان</span>
+                </div>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="admin-profile-sm">
+                <div class="admin-avatar">A</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;" id="adminName">Admin User</div>
+                    <div style="font-size: 12px; opacity: 0.6;">Administrator</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <!-- Topbar -->
+        <header class="topbar" style="position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 16px;">
+                <button class="menu-toggle-btn" id="mobileMenuBtn">
+                    <span class="material-icons">menu</span>
+                </button>
+                <div>
+                    <h1 class="page-title" style="margin:0; font-size:20px;">Bus Depots</h1>
+                    <div class="page-subtitle" style="font-size:13px; color:var(--color-text-muted);">Manage garages and view parked buses</div>
+                </div>
+            </div>
+            
+            <div class="topbar-center">
+                <div class="search-bar">
+                    <span class="material-icons">search</span>
+                    <input type="text" placeholder="Search depots..." id="depotSearchInput">
+                </div>
+            </div>
+            
+            <div class="topbar-right" style="display: flex; align-items: center;">
+                <button class="btn btn-primary" id="addDepotBtn" style="margin-right: 16px; padding: 8px 16px; font-size: 14px; border-radius: 8px; font-weight: 600;">
+                    <span class="material-icons" style="font-size: 18px;">add</span> Add Depot
+                </button>
+                <div style="margin-right: 16px;">
+                    <label for="switch" class="switch">
+                        <input id="switch" type="checkbox" />
+                        <span class="slider"></span>
+                        <span class="decoration"></span>
+                    </label>
+                </div>
+                <div class="admin-avatar" style="border: 2px solid var(--color-teal); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">A</div>
+            </div>
+        </header>
+
+        <!-- Main layout -->
+        <div class="depots-layout" style="margin-top: 16px;">
+
+            <!-- LEFT: Depot List -->
+            <div class="depot-list-panel">
+                <div class="depot-list-header">
+                    <div class="depot-list-header-top">
+                        <h3>All Depots</h3>
+                        <span id="depotCount" style="font-size: 13px; background: var(--color-border); padding: 2px 10px; border-radius: 100px; font-weight: 600;">0</span>
+                    </div>
+                </div>
+                <div class="depot-list-body" id="depotListBody">
+                    <div style="padding: 40px; text-align: center; color: var(--color-text-muted);">
+                        <span class="material-icons spin" style="font-size: 32px;">refresh</span>
+                        <p style="margin-top: 8px; font-size: 13px;">Loading depots...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Depot Detail + Buses -->
+            <div class="depot-right-panel" id="depotRightPanel">
+
+                <!-- Empty state (shown initially) -->
+                <div class="depot-empty-state" id="depotEmptyState">
+                    <span class="material-icons">garage</span>
+                    <h3>Select a Depot</h3>
+                    <p>Click any depot on the left to view its parked buses and details</p>
+                </div>
+
+                <!-- Depot detail (hidden until selected) -->
+                <div id="depotDetailView" style="display:none; flex-direction: column; height: 100%;">
+
+                    <!-- Header -->
+                    <div class="depot-detail-header">
+                        <div class="depot-color-badge" id="depotColorBadge">
+                            <span class="material-icons">garage</span>
+                        </div>
+                        <div class="depot-detail-info">
+                            <h3 class="depot-detail-title" id="depotDetailName">—</h3>
+                            <p class="depot-detail-sub" id="depotDetailAddress">—</p>
+                        </div>
+                        <div class="depot-detail-actions">
+                            <button class="btn btn-ghost" id="editDepotBtn" title="Edit Depot">
+                                <span class="material-icons">edit</span>
+                            </button>
+                            <button class="btn btn-ghost" id="deleteDepotBtn" title="Delete Depot" style="color: var(--color-red);">
+                                <span class="material-icons">delete</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info strip -->
+                    <div class="depot-info-strip">
+                        <div class="depot-info-chip">
+                            <span class="material-icons">directions_bus</span>
+                            <span>Parked: <strong id="infoParked">0</strong></span>
+                        </div>
+                        <div class="depot-info-chip">
+                            <span class="material-icons">inventory_2</span>
+                            <span>Capacity: <strong id="infoCapacity">—</strong></span>
+                        </div>
+                        <div class="depot-info-chip">
+                            <span class="material-icons">schedule</span>
+                            <span>Hours: <strong id="infoHours">—</strong></span>
+                        </div>
+                        <div class="depot-info-chip">
+                            <span class="material-icons">person</span>
+                            <span>Manager: <strong id="infoManager">—</strong></span>
+                        </div>
+                        <div class="depot-info-chip">
+                            <span class="material-icons">info</span>
+                            Status: &nbsp;<strong id="infoStatus">—</strong>
+                        </div>
+                    </div>
+
+                    <!-- Buses section -->
+                    <div class="depot-buses-section">
+                        <div class="depot-buses-header">
+                            <h4>
+                                <span class="material-icons" style="font-size: 18px; opacity: 0.7;">directions_bus</span>
+                                Buses at this Depot
+                                <span class="buses-count-badge" id="busesCountBadge">0</span>
+                            </h4>
+                            <button class="btn btn-ghost" id="addBusToDepotBtn" style="font-size: 13px;">
+                                <span class="material-icons" style="font-size: 16px;">add</span> Assign Bus
+                            </button>
+                        </div>
+
+                        <div class="depot-buses-list" id="depotBusesList">
+                            <!-- Bus rows inserted here -->
+                        </div>
+
+                        <!-- Bus detail slide-out panel -->
+                        <div class="bus-detail-panel" id="busDetailPanel">
+                            <div class="bus-detail-panel-header">
+                                <h4>
+                                    <span class="material-icons" style="font-size: 18px; color: var(--color-primary);">info</span>
+                                    Bus Details — <span id="busDetailId" style="font-family: monospace;"></span>
+                                </h4>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button class="btn btn-ghost" id="editBusFromDepotBtn" style="font-size: 13px;">
+                                        <span class="material-icons" style="font-size: 15px;">edit</span> Edit
+                                    </button>
+                                    <button class="btn btn-ghost" id="unassignBusBtn" style="font-size: 13px; color: var(--color-red);">
+                                        <span class="material-icons" style="font-size: 15px;">link_off</span> Unassign
+                                    </button>
+                                    <button class="btn btn-ghost" id="closeBusDetail" style="font-size: 13px;">
+                                        <span class="material-icons" style="font-size: 16px;">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bus-detail-grid" id="busDetailGrid">
+                                <!-- Fields inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /depots-layout -->
+    </div><!-- /main-wrapper -->
+</div><!-- /app-container -->
+
+<script type="module" src="js/depots.js"></script>
+</body>
+</html>

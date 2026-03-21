@@ -8,62 +8,209 @@ datasource db {
 }
 
 model Admin {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  refreshTokens RefreshToken[]
+  activityLogs  ActivityLog[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([token])
 }
 
 model Route {
-  id           String   @id @default(cuid())
-  name         String
-  nameKurdish  String
-  colorHex     String   @default("#1877F2")
-  status       String   @default("RUNNING")
-  description  String?
-  isFavorite   Boolean  @default(false)
-  buses        Bus[]
-  schedules    Schedule[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String          @id @default(cuid())
+  name        String
+  nameKurdish String
+  colorHex    String          @default("#1877F2")
+  status      String          @default("RUNNING")
+  description String?
+  isFavorite  Boolean         @default(false)
+  waypoints   String          @default("[]")
+  buses       Bus[]
+  schedules   Schedule[]
+  routeStops  RouteStop[]
+  drivers     Driver[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 model Stop {
-  id        String     @id @default(cuid())
-  name      String
-  latitude  Float
-  longitude Float
-  schedules Schedule[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id          String      @id @default(cuid())
+  name        String
+  nameKurdish String      @default("")
+  latitude    Float
+  longitude   Float
+  schedules   Schedule[]
+  routeStops  RouteStop[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model RouteStop {
+  id        String   @id @default(cuid())
+  routeId   String
+  route     Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stopId    String
+  stop      Stop     @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  sequence  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([routeId, stopId])
+  @@index([routeId])
+  @@index([stopId])
 }
 
 model Bus {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   routeId      String?
-  route        Route?   @relation(fields: [routeId], references: [id])
-  latitude     Float
-  longitude    Float
-  status       String   @default("RUNNING")
+  route        Route?     @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  depotId      String?
+  depot        Depot?     @relation(fields: [depotId], references: [id], onDelete: SetNull)
+  latitude     Float      @default(36.1901)
+  longitude    Float      @default(44.0089)
+  status       String     @default("RUNNING")
   nextStopName String?
-  lastUpdated  DateTime @default(now())
+  lastUpdated  DateTime   @default(now())
   schedules    Schedule[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  drivers      Driver[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([routeId])
+  @@index([depotId])
+}
+
+model Depot {
+  id             String   @id @default(cuid())
+  name           String
+  nameKurdish    String
+  lat            Float
+  lng            Float
+  capacity       Int      @default(0)
+  status         String   @default("ACTIVE")
+  manager        String?
+  phone          String?
+  address        String?
+  addressKurdish String?
+  openTime       String?
+  closeTime      String?
+  colorHex       String   @default("#1877F2")
+  buses          Bus[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Schedule {
   id          String   @id @default(cuid())
   stopId      String
-  stop        Stop     @relation(fields: [stopId], references: [id])
+  stop        Stop     @relation(fields: [stopId], references: [id], onDelete: Cascade)
   routeId     String
-  route       Route    @relation(fields: [routeId], references: [id])
+  route       Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
   busId       String?
-  bus         Bus?     @relation(fields: [busId], references: [id])
+  bus         Bus?     @relation(fields: [busId], references: [id], onDelete: SetNull)
   arrivalTime String
+  dayOfWeek   String?
   isRealtime  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([routeId])
+  @@index([stopId])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  adminId    String?
+  admin      Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String
+  entityName String
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([entityType])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// --- Driver Module ---
+model Driver {
+  id                      String        @id @default(cuid())
+  
+  // Identity
+  fullName                String
+  fullNameKurdish         String
+  employeeCode            String        @unique
+  photo                   String?
+
+  // Contact
+  phoneNumber             String
+  phoneNumberAlt          String?
+  email                   String?       @unique
+  address                 String?
+
+  // License
+  licenseNumber           String        @unique
+  licenseType             String
+  licenseExpiry           DateTime
+  licenseIssuedBy         String?
+
+  // Vehicle
+  assignedBusId           String?
+  assignedBus             Bus?          @relation(fields: [assignedBusId], references: [id], onDelete: SetNull)
+  carPlateNumber          String?
+
+  // Depot & Organization
+  depotName               String
+  depotLocation           String?
+  shift                   String        @default("MORNING")
+  routeId                 String?
+  assignedRoute           Route?        @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  supervisorName          String?
+
+  // Employment
+  status                  String        @default("ACTIVE")
+  hireDate                DateTime
+  terminationDate         DateTime?
+  contractType            String        @default("FULL_TIME")
+
+  // Emergency Contact
+  emergencyContactName    String?
+  emergencyContactPhone   String?
+  emergencyContactRelation String?
+
+  // Notes
+  notes                   String?
+
+  // Timestamps
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([routeId])
+  @@index([assignedBusId])
+  @@index([status])
+  @@index([depotName])
+  @@index([employeeCode])
 }
