@@ -12,6 +12,7 @@ let activePolyline = null;
 let highlightPolyline = null;
 let routeOutlinePolyline = null;
 let waypointMarkers = [];
+let routeLayerGroup = null;  // LayerGroup for all route-related layers
 let unsavedChanges = null;    // array of [lat, lng] for currently drawn path
 let allBuses = [];
 let activeBusPoller = null;
@@ -86,7 +87,8 @@ function initMap() {
 
     setTileLayer(currentStyleIdx);
 
-    // Removed markerClusterGroup to clean up map clutter
+    // Initialize route layer group for guaranteed cleanup
+    routeLayerGroup = L.layerGroup().addTo(map);
 
     map.on('click', onMapClick);
     map.on('contextmenu', (e) => {
@@ -190,7 +192,7 @@ function renderRouteList(routes) {
     }
     
     container.innerHTML = routes.map(r => `
-        <div class="route-card ${selectedRouteId === r.id ? 'selected' : ''}" onclick="selectRoute('${r.id}')" id="card-${r.id}">
+        <div class="route-card ${String(selectedRouteId) === String(r.id) ? 'selected' : ''}" onclick="selectRoute('${r.id}')" id="card-${r.id}">
             <div style="display: flex; gap: 12px; align-items: flex-start;">
                 <div class="route-color-swatch" style="background-color: ${r.colorHex};"></div>
                 <div style="flex: 1;">
@@ -220,13 +222,19 @@ function populateRouteSelector() {
 
 window.selectRoute = selectRoute;
 function selectRoute(routeId) {
-    // If selecting currently selected route, deselect it (if clicked from sidebar)
-    if (String(selectedRouteId) === String(routeId)) {
-        // deselect
-        routeId = "";
+    // ALWAYS clear old route layers immediately on any selection change
+    clearActiveRoutePolylines();
+
+    // Normalize to string for consistent comparison
+    const newId = routeId ? String(routeId) : null;
+    const currentId = selectedRouteId ? String(selectedRouteId) : null;
+
+    // If selecting currently selected route, deselect it (toggle)
+    if (currentId && currentId === newId) {
+        selectedRouteId = null;
+    } else {
+        selectedRouteId = newId;
     }
-    
-    selectedRouteId = routeId ? (isNaN(routeId) ? routeId : parseInt(routeId, 10)) : null; // Handle potential int/string ids
     
     // Update Dropdown
     document.getElementById('mapRouteSelector').value = selectedRouteId || "";
@@ -236,11 +244,12 @@ function selectRoute(routeId) {
     unsavedChanges = null;
     document.getElementById('saveMapBtn').disabled = true;
     
-    // Update selected class manually to preserve search filter DOM
-    document.querySelectorAll('.route-card').forEach(c => c.classList.remove('selected'));
-    if (selectedRouteId) {
-        const activeCard = document.getElementById(`card-${selectedRouteId}`);
-        if (activeCard) activeCard.classList.add('selected');
+    // Re-render the entire route list to guarantee only the active card is highlighted
+    const searchQuery = document.getElementById('routesSidebarSearch')?.value || '';
+    if (searchQuery) {
+        filterRoutes(searchQuery);
+    } else {
+        renderRouteList(allRoutes);
     }
     
     if (!selectedRouteId) {
@@ -313,6 +322,11 @@ window.flyToWP = (lat, lng) => {
 // (Background stops removed as per user request to reduce clutter)
 
 function clearActiveRoutePolylines() {
+    // Use LayerGroup for guaranteed cleanup of ALL route layers
+    if (routeLayerGroup) {
+        routeLayerGroup.clearLayers();
+    }
+    // Also clean up individual references
     if (activePolyline) { map.removeLayer(activePolyline); activePolyline = null; }
     if (highlightPolyline) { map.removeLayer(highlightPolyline); highlightPolyline = null; }
     if (routeOutlinePolyline) { map.removeLayer(routeOutlinePolyline); routeOutlinePolyline = null; }
@@ -360,7 +374,8 @@ function renderDrawnPath(color, isDrawing, warningColor = null) {
         opacity: 0.8,
         lineCap: 'round',
         lineJoin: 'round'
-    }).addTo(map);
+    });
+    routeLayerGroup.addLayer(routeOutlinePolyline);
     
     // Draw base polyline
     activePolyline = L.polyline(unsavedChanges, {
@@ -370,7 +385,8 @@ function renderDrawnPath(color, isDrawing, warningColor = null) {
         dashArray: isDrawing ? '8 6' : null,
         lineCap: 'round',
         lineJoin: 'round'
-    }).addTo(map);
+    });
+    routeLayerGroup.addLayer(activePolyline);
     
     // Draw dashed highlight polyline overlay if requested
     if (warningColor && !isDrawing) {
@@ -381,7 +397,8 @@ function renderDrawnPath(color, isDrawing, warningColor = null) {
             dashArray: '12 18',
             lineCap: 'butt',
             lineJoin: 'round'
-        }).addTo(map);
+        });
+        routeLayerGroup.addLayer(highlightPolyline);
     }
     
     // Draw markers
@@ -404,7 +421,8 @@ function renderDrawnPath(color, isDrawing, warningColor = null) {
                 iconSize: [14, 14],
                 iconAnchor: [7, 7]
             });
-            const dragM = L.marker(pt, { icon, draggable: true }).addTo(map);
+            const dragM = L.marker(pt, { icon, draggable: true });
+            routeLayerGroup.addLayer(dragM);
             dragM.bindTooltip(`WP ${i+1}`, { direction: 'top', permanent: false });
             
             dragM.on('dragend', (e) => {
@@ -424,7 +442,7 @@ function renderDrawnPath(color, isDrawing, warningColor = null) {
             waypointMarkers.push(dragM);
         } else {
             // standard circle
-            m.addTo(map);
+            routeLayerGroup.addLayer(m);
             m.bindTooltip(`WP ${i+1}`, { direction: 'top' });
             waypointMarkers.push(m);
         }
