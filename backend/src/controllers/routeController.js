@@ -13,6 +13,10 @@ exports.listRoutes = async (req, res) => {
         schedules: {
           include: { stop: true },
           orderBy: { arrivalTime: 'asc' }
+        },
+        routeStops: {
+          include: { stop: true },
+          orderBy: { sequence: 'asc' }
         }
       },
       orderBy: { createdAt: 'desc' },
